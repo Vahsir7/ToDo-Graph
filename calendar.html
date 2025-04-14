@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar View - Task Manager</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <nav class="navbar">
+            <span class="navbar-brand">Task Manager</span>
+             <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="todo.html">To-Do List</a>
+                <a href="graph.html">Graph View</a>
+                <a href="calendar.html">Calendar</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
+                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
+            </button>
+        </nav>
+
+        <div class="content-card">
+             <h1>Calendar</h1>
+             <div id="calendar"></div>
+        </div>
+
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        const calendarEl = document.getElementById('calendar');
+        let calendar = null;
+
+        // Transform tasks into FullCalendar events
+        function getCalendarEvents() {
+            // Define colors here or get from CSS variables if needed
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#3b82f6';
+            const completedColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-hover-color').trim() || '#6b7280'; // Use a gray-ish color
+            const completedTextColor = getComputedStyle(document.documentElement).getPropertyValue('--text-muted-color').trim() || '#6b7280';
+
+            return Object.entries(tasks)
+                .filter(([_, task]) => task.dueDate)
+                .map(([id, task]) => ({
+                    id: id,
+                    title: task.title,
+                    start: task.dueDate,
+                    allDay: true,
+                    extendedProps: {
+                        categoryId: task.categoryId,
+                        completed: task.completed
+                    },
+                    // Apply styling directly
+                    backgroundColor: task.completed ? completedColor : primaryColor,
+                    borderColor: task.completed ? completedColor : primaryColor,
+                    textColor: task.completed ? completedTextColor : '#ffffff', // White text usually works
+                    classNames: task.completed ? ['completed-event'] : [] // Add class for potential CSS overrides
+                }));
+        }
+
+        // Initialize FullCalendar
+        function initializeCalendar() {
+            if (!FullCalendar || !calendarEl) return;
+             if (calendar) calendar.destroy(); // Clean up previous instance
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                events: getCalendarEvents(),
+                editable: false,
+                selectable: false,
+                dayMaxEvents: true,
+                eventTimeFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: true, meridiem: 'short' },
+                eventDidMount: function(info) { // Add simple tooltips
+                    let tooltipText = `Task: ${info.event.title}`;
+                    if (info.event.extendedProps.completed) tooltipText += " (Completed)";
+                    tooltipText += ` | Category: ${categories[info.event.extendedProps.categoryId] || '?'}`;
+                    info.el.setAttribute('title', tooltipText);
+                },
+                eventClick: function(info) { // Basic alert on click
+                     const task = tasks[info.event.id];
+                     if(task) {
+                        let details = `Task: ${task.title}\nStatus: ${task.completed ? 'Completed' : 'Pending'}`;
+                        details += `\nCategory: ${categories[task.categoryId] || '?'}`;
+                        if(task.dueDate) details += `\nDue: ${formatDate(task.dueDate)}`;
+                        alert(details);
+                     }
+                     info.jsEvent.preventDefault();
+                }
+            });
+            calendar.render();
+        }
+
+         // Refresh calendar events
+         function refreshCalendarEvents() {
+             if (calendar) {
+                 calendar.refetchEvents(); // Use FullCalendar's method
+             }
+         }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            setActiveNav('calendar.html'); // Correct filename
+            initializeCalendar();
+
+            // Listeners for theme/data changes
+            window.addEventListener('themeChanged', initializeCalendar); // Re-initialize needed to apply theme variables correctly to FC
+            window.addEventListener('dataUpdated', refreshCalendarEvents);
+        });
+    </script>
+</body>
+</html>

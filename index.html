@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en"> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <nav class="navbar">
+            <span class="navbar-brand">Task Manager</span>
+            <div class="navbar-links"> <a href="index.html">Dashboard</a>
+                <a href="todo.html">To-Do List</a>
+                <a href="graph.html">Graph View</a>
+                <a href="calendar.html">Calendar</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
+                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
+            </button>
+        </nav>
+
+        <div class="content-card">
+             <h1>Dashboard Summary</h1>
+             <div class="summary-grid"> <div class="summary-card">
+                     <h2>Pending Tasks</h2>
+                     <p id="pending-tasks-count" class="count pending-count">0</p>
+                 </div>
+                 <div class="summary-card">
+                     <h2>Due Today</h2>
+                     <p id="due-today-count" class="count due-today-count">0</p>
+                     <ul id="due-today-list"></ul>
+                 </div>
+                 <div class="summary-card">
+                     <h2>Categories</h2>
+                     <p id="category-count" class="count category-count">0</p>
+                     <ul id="category-list"></ul>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        // JS for rendering summary remains largely the same,
+        // but ensure elements exist and have correct IDs.
+        function renderSummary() {
+             const pendingTasks = Object.values(tasks).filter(task => !task.completed);
+             const today = getISODate(new Date());
+             const dueToday = pendingTasks.filter(task => task.dueDate === today);
+             const categoryCount = Object.keys(categories).length;
+
+             document.getElementById('pending-tasks-count').textContent = pendingTasks.length;
+             document.getElementById('due-today-count').textContent = dueToday.length;
+             document.getElementById('category-count').textContent = categoryCount;
+
+             // Due Today List
+             const dueTodayList = document.getElementById('due-today-list');
+             dueTodayList.innerHTML = '';
+             if (dueToday.length === 0) {
+                 dueTodayList.innerHTML = '<li>No tasks due today</li>';
+             } else {
+                 dueToday.slice(0, 3).forEach(task => {
+                     const li = document.createElement('li');
+                     li.textContent = task.title;
+                     dueTodayList.appendChild(li);
+                 });
+                 if (dueToday.length > 3) {
+                     const li = document.createElement('li');
+                     li.textContent = `...and ${dueToday.length - 3} more`;
+                     li.style.fontStyle = 'italic'; // Add styling via JS if needed
+                     dueTodayList.appendChild(li);
+                 }
+             }
+
+             // Category List
+             const categoryList = document.getElementById('category-list');
+             categoryList.innerHTML = '';
+             const sortedCategories = Object.values(categories).sort((a, b) => a.localeCompare(b));
+             if (sortedCategories.length === 0) {
+                 categoryList.innerHTML = '<li>No categories</li>';
+             } else {
+                 sortedCategories.slice(0, 5).forEach(name => {
+                     const li = document.createElement('li');
+                     li.textContent = name;
+                     categoryList.appendChild(li);
+                 });
+                 if (sortedCategories.length > 5) {
+                     const li = document.createElement('li');
+                     li.textContent = `...and ${sortedCategories.length - 5} more`;
+                     li.style.fontStyle = 'italic';
+                     categoryList.appendChild(li);
+                 }
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            setActiveNav('index.html'); // Correct filename
+            renderSummary();
+            window.addEventListener('dataUpdated', renderSummary);
+        });
+    </script>
+</body>
+</html>

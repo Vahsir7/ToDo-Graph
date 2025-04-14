@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph View - Task Manager</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <nav class="navbar">
+            <span class="navbar-brand">Task Manager</span>
+             <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="todo.html">To-Do List</a>
+                <a href="graph.html">Graph View</a>
+                <a href="calendar.html">Calendar</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
+                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
+            </button>
+        </nav>
+
+        <div class="content-card">
+            <h1>Task Graph</h1>
+            <p>Visual overview of tasks and categories. Double-click a category to add a task. Double-click empty space to add a category. Select nodes for actions.</p>
+
+            <div id="task-graph"></div>
+
+             <div id="selected-node-info" class="hidden"> <span id="selected-node-text"></span>
+                 <div> <button id="edit-node-btn" class="form-button form-button-primary form-button-sm" disabled>Edit</button>
+                     <button id="delete-node-btn" class="form-button form-button-danger form-button-sm" disabled>Delete</button>
+                 </div>
+             </div>
+        </div>
+
+         <div id="task-modal" class="modal hidden">
+             <div class="modal-content">
+                 <h3 id="task-modal-title">Add/Edit Task</h3>
+                 <input type="hidden" id="task-modal-id">
+                 <input type="hidden" id="task-modal-category-id">
+                 <div class="form-group">
+                     <label for="task-modal-title-input">Task Title</label>
+                     <input type="text" id="task-modal-title-input" placeholder="Enter task title" class="form-input">
+                 </div>
+                 <div class="form-group">
+                     <label for="task-modal-due-date-input">Due Date (Optional)</label>
+                     <input type="date" id="task-modal-due-date-input" class="form-date">
+                 </div>
+                 <div class="modal-actions"> <button id="cancel-task-modal-btn" class="form-button form-button-secondary">Cancel</button>
+                     <button id="save-task-modal-btn" class="form-button form-button-primary">Save Task</button>
+                 </div>
+             </div>
+         </div>
+
+          <div id="category-modal" class="modal hidden">
+              <div class="modal-content">
+                  <h3 id="category-modal-title">Add/Edit Category</h3>
+                  <input type="hidden" id="category-modal-id">
+                  <div class="form-group">
+                      <label for="category-modal-name-input">Category Name</label>
+                      <input type="text" id="category-modal-name-input" placeholder="Enter category name" class="form-input">
+                  </div>
+                  <div class="modal-actions"> <button id="cancel-category-modal-btn" class="form-button form-button-secondary">Cancel</button>
+                      <button id="save-category-modal-btn" class="form-button form-button-primary">Save Category</button>
+                  </div>
+              </div>
+          </div>
+
+    </div>
+
+    <style>
+        #task-graph { height: 500px; /* Or adjust as needed */ }
+        .form-group { margin-bottom: 1rem; } /* Spacing in modals */
+        .modal-actions { margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; }
+    </style>
+
+    <script src="common.js"></script>
+    <script>
+        // --- DOM Elements ---
+        const graphContainer = document.getElementById('task-graph');
+        const selectedNodeInfoDiv = document.getElementById('selected-node-info');
+        const selectedNodeTextSpan = document.getElementById('selected-node-text');
+        const editNodeBtn = document.getElementById('edit-node-btn');
+        const deleteNodeBtn = document.getElementById('delete-node-btn');
+        // Task Modal
+        const taskModal = document.getElementById('task-modal');
+        const taskModalTitle = document.getElementById('task-modal-title');
+        const taskModalIdInput = document.getElementById('task-modal-id');
+        const taskModalCategoryIdInput = document.getElementById('task-modal-category-id');
+        const taskModalTitleInput = document.getElementById('task-modal-title-input');
+        const taskModalDueDateInput = document.getElementById('task-modal-due-date-input');
+        const saveTaskModalBtn = document.getElementById('save-task-modal-btn');
+        const cancelTaskModalBtn = document.getElementById('cancel-task-modal-btn');
+        // Category Modal
+        const categoryModal = document.getElementById('category-modal');
+        const categoryModalTitle = document.getElementById('category-modal-title');
+        const categoryModalIdInput = document.getElementById('category-modal-id');
+        const categoryModalNameInput = document.getElementById('category-modal-name-input');
+        const saveCategoryModalBtn = document.getElementById('save-category-modal-btn');
+        const cancelCategoryModalBtn = document.getElementById('cancel-category-modal-btn');
+
+        // --- Vis Network State ---
+        let network = null;
+        let graphNodes = new vis.DataSet();
+        let graphEdges = new vis.DataSet();
+        let selectedNodeId = null;
+
+
+        // --- Vis Network Configuration ---
+        function getGraphOptions() {
+            const isDark = document.documentElement.classList.contains('dark');
+            // Define colors based on theme
+             const nodeTextColor = isDark ? '#f9fafb' : '#1f2937';
+             const edgeColor = isDark ? '#4b5563' : '#d1d5db';
+             const edgeHighlightColor = isDark ? '#60a5fa' : '#3b82f6';
+             const depEdgeColor = '#ef4444'; // Danger color constant
+
+             // Base node colors (adjust as needed)
+             const baseNode = { border: isDark ? '#6b7280' : '#9ca3af', background: isDark ? '#4b5563' : '#e5e7eb' };
+             const highlightNode = { border: isDark ? '#93c5fd' : '#60a5fa', background: isDark ? '#bfdbfe' : '#93c5fd' };
+
+             // Specific node type colors
+             const meColor = { border: '#f59e0b', background: '#fcd34d', highlight: { border: '#fbbf24', background: '#fde68a'} };
+             const categoryColor = { border: '#3b82f6', background: '#60a5fa', highlight: { border: '#93c5fd', background: '#bfdbfe'} };
+             const taskColor = { border: '#10b981', background: '#34d399', highlight: { border: '#6ee7b7', background: '#a7f3d0'} };
+             const completedTaskColor = { border: '#6b7280', background: '#9ca3af', highlight: { border: '#d1d5db', background: '#e5e7eb'} };
+
+             return {
+                 physics: { // Keep physics settings
+                     solver: 'forceAtlas2Based',
+                     forceAtlas2Based: { gravitationalConstant: -55, centralGravity: 0.01, springLength: 110, springConstant: 0.08, avoidOverlap: 0.6 },
+                     minVelocity: 0.75, stabilization: { enabled: true, iterations: 800, updateInterval: 40 }
+                 },
+                 nodes: {
+                     font: { size: 14, color: nodeTextColor, multi: 'html', strokeWidth: 0 },
+                     borderWidth: 1.5, shapeProperties: { interpolation: false },
+                     color: baseNode, // Default node colors
+                     scaling: { min: 25, max: 55, label: { enabled: true, min: 14, max: 22 } }
+                 },
+                 edges: {
+                     width: 1.5, smooth: { enabled: true, type: "continuous", roundness: 0.1 },
+                     color: { color: edgeColor, highlight: edgeHighlightColor, hover: edgeHighlightColor, inherit: false },
+                     arrows: { to: { enabled: true, scaleFactor: 0.7 } }
+                 },
+                 interaction: { hover: true, tooltipDelay: 250, navigationButtons: true, keyboard: true },
+                 manipulation: { enabled: false },
+
+                 // Store colors for lookup later
+                 _colors: { isDark, meColor, categoryColor, taskColor, completedTaskColor, depEdgeColor }
+             };
+        }
+
+        // --- Graph Rendering Logic ---
+        function renderGraph() {
+             if (!vis || !graphContainer) return;
+             const options = getGraphOptions(); // Get current theme-aware options
+             const colors = options._colors; // Retrieve stored colors
+
+             graphNodes.clear(); graphEdges.clear();
+
+            // Me Node
+            graphNodes.add({ id: ME_NODE_ID, label: '<b>Me</b>', shape: 'ellipse', color: colors.meColor, font: { size: 16 }, x: 0, y: 0, mass: 3, type: 'me' });
+
+            // Category Nodes
+            Object.entries(categories).forEach(([id, name]) => {
+                graphNodes.add({ id: id, label: `<b>${escapeHtml(name)}</b>`, shape: 'box', color: colors.categoryColor, type: 'category', margin: 10, title: `Category: ${escapeHtml(name)}` });
+                graphEdges.add({ from: ME_NODE_ID, to: id });
+            });
+
+            // Task Nodes
+            Object.entries(tasks).forEach(([taskId, task]) => {
+                let taskLabel = escapeHtml(task.title);
+                let tooltipText = `Task: ${escapeHtml(task.title)}\nCategory: ${escapeHtml(categories[task.categoryId] || '?')}`;
+                if (task.dueDate) {
+                     const dateColor = colors.isDark ? '#9ca3af' : '#6b7280'; // Muted text color
+                     taskLabel += `\n<span style="font-size:0.8em; color:${dateColor};">(${formatDate(task.dueDate)})</span>`;
+                     tooltipText += `\nDue: ${formatDate(task.dueDate)}`;
+                }
+                const nodeColorToUse = task.completed ? colors.completedTaskColor : colors.taskColor;
+                const fontColor = task.completed ? (colors.isDark ? '#9ca3af' : '#6b7280') : nodeColorToUse.border;
+
+                if (task.dependencies.length > 0) {
+                    const depNames = task.dependencies.map(d => escapeHtml(tasks[d]?.title || '?')).join(', ');
+                    tooltipText += `\nDepends on: ${depNames}`;
+                }
+
+                graphNodes.add({
+                    id: taskId, label: taskLabel, shape: 'ellipse', color: nodeColorToUse,
+                    font: { color: fontColor }, type: 'task',
+                    title: tooltipText.replace(/\n/g, '<br>'), mass: 1
+                });
+
+                if (task.categoryId && categories[task.categoryId]) { graphEdges.add({ from: task.categoryId, to: taskId }); }
+                task.dependencies.forEach(prerequisiteTaskId => {
+                    if (tasks[prerequisiteTaskId]) {
+                        graphEdges.add({
+                            from: taskId, to: prerequisiteTaskId, dashes: true,
+                            color: { color: colors.depEdgeColor, inherit: false },
+                            arrows: { to: { enabled: true, scaleFactor: 0.6, type:'arrow' } }
+                         });
+                    }
+                });
+            });
+
+            const data = { nodes: graphNodes, edges: graphEdges };
+            if (!network) {
+                 network = new vis.Network(graphContainer, data, options);
+                 network.on("selectNode", handleNodeSelect);
+                 network.on("deselectNode", handleNodeDeselect);
+                 network.on("doubleClick", handleDoubleClick);
+            } else {
+                 network.setOptions(options); // Update options (handles theme changes)
+                 network.setData(data); // Update data
+            }
+        }
+        // --- Interaction, Modal, Action Handlers (logic remains the same) ---
+         function escapeHtml(unsafe) { /* ... same as before ... */
+             if (!unsafe) return ''; return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+         }
+         function handleNodeSelect(params) { /* ... same as before ... */
+             if (params.nodes.length === 1) {
+                 selectedNodeId = params.nodes[0]; const node = graphNodes.get(selectedNodeId);
+                 if (node) {
+                     let nodeTypeText = 'Node'; let label = node.label || '';
+                     const tempDiv = document.createElement('div'); tempDiv.innerHTML = label;
+                     const mainLabel = tempDiv.textContent.split('\n')[0];
+                     if (node.id === ME_NODE_ID) nodeTypeText = 'Me';
+                     else if (node.type === 'category') nodeTypeText = 'Category';
+                     else if (node.type === 'task') nodeTypeText = 'Task';
+                     selectedNodeTextSpan.textContent = `${nodeTypeText}: ${mainLabel}`;
+                     const canInteract = node.id !== ME_NODE_ID;
+                     editNodeBtn.disabled = !canInteract; deleteNodeBtn.disabled = !canInteract;
+                     selectedNodeInfoDiv.classList.remove('hidden');
+                 } else { handleNodeDeselect(); }
+             } else { handleNodeDeselect(); }
+         }
+         function handleNodeDeselect(params) { /* ... same as before ... */
+            if (!params || !params.nodes || params.nodes.length === 0) {
+                selectedNodeId = null; selectedNodeInfoDiv.classList.add('hidden');
+                editNodeBtn.disabled = true; deleteNodeBtn.disabled = true;
+            }
+         }
+         function handleDoubleClick(params) { /* ... same as before ... */
+             network.unselectAll();
+             if (params.nodes.length === 1) {
+                 const nodeId = params.nodes[0]; const node = graphNodes.get(nodeId);
+                 if (node && node.id === ME_NODE_ID) { network.focus(ME_NODE_ID, { scale: 1.2, animation: true }); }
+                 else if (node && node.type === 'category') { openTaskModal(null, nodeId); }
+                 else if (node && node.type === 'task') { openTaskModal(nodeId); }
+             } else if (params.nodes.length === 0 && params.edges.length === 0) { openCategoryModal(); }
+         }
+         function openTaskModal(taskId = null, categoryIdForNew = null) { /* ... same as before ... */
+            if (taskId) {
+                const task = tasks[taskId]; if (!task) return;
+                taskModalTitle.textContent = "Edit Task"; taskModalIdInput.value = taskId;
+                taskModalCategoryIdInput.value = task.categoryId; taskModalTitleInput.value = task.title;
+                taskModalDueDateInput.value = getISODate(task.dueDate);
+            } else if (categoryIdForNew && categories[categoryIdForNew]) {
+                taskModalTitle.textContent = `Add Task to "${categories[categoryIdForNew]}"`;
+                taskModalIdInput.value = ""; taskModalCategoryIdInput.value = categoryIdForNew;
+                taskModalTitleInput.value = ""; taskModalDueDateInput.value = "";
+            } else { return; }
+            taskModal.classList.remove('hidden'); taskModalTitleInput.focus();
+         }
+         function closeTaskModal() { /* ... same as before ... */
+             taskModal.classList.add('hidden'); taskModalIdInput.value = ""; taskModalCategoryIdInput.value = "";
+             taskModalTitleInput.value = ""; taskModalDueDateInput.value = "";
+         }
+         function openCategoryModal(categoryId = null) { /* ... same as before ... */
+            if (categoryId && categoryId !== ME_NODE_ID) {
+                const categoryName = categories[categoryId]; if (!categoryName) return;
+                categoryModalTitle.textContent = "Edit Category"; categoryModalIdInput.value = categoryId;
+                categoryModalNameInput.value = categoryName;
+            } else {
+                 categoryModalTitle.textContent = "Add New Category"; categoryModalIdInput.value = "";
+                 categoryModalNameInput.value = "";
+            }
+            categoryModal.classList.remove('hidden'); categoryModalNameInput.focus();
+         }
+         function closeCategoryModal() { /* ... same as before ... */
+            categoryModal.classList.add('hidden'); categoryModalIdInput.value = "";
+             categoryModalNameInput.value = "";
+         }
+         function handleEditSelectedNode() { /* ... same as before ... */
+            if (!selectedNodeId) return; const node = graphNodes.get(selectedNodeId);
+            if (!node || node.id === ME_NODE_ID) return;
+            if (node.type === 'task') openTaskModal(selectedNodeId);
+            else if (node.type === 'category') openCategoryModal(selectedNodeId);
+         }
+         function handleDeleteSelectedNode() { /* ... same as before ... */
+             if (!selectedNodeId || selectedNodeId === ME_NODE_ID) return; const node = graphNodes.get(selectedNodeId); if (!node) return;
+             const nodeType = node.type === 'category' ? 'category' : 'task';
+             const tempDiv = document.createElement('div'); tempDiv.innerHTML = node.label || ''; const nodeName = tempDiv.textContent.split('\n')[0];
+             let confirmMessage = `Delete ${nodeType}: "${nodeName}"?`;
+             if (nodeType === 'category') confirmMessage += "\n(Check console for task reassignment info.)";
+             if (confirm(confirmMessage)) {
+                 let success = false; let alertMsg = null;
+                 if (nodeType === 'task') { success = deleteTask(selectedNodeId); }
+                 else if (nodeType === 'category') {
+                     const result = deleteCategory(selectedNodeId);
+                     if (result === true) success = true; else if (typeof result === 'string') alertMsg = result;
+                 }
+                 if (success) { renderGraph(); handleNodeDeselect(); }
+                 else { alert(alertMsg || `Error deleting ${nodeType}.`); }
+            }
+         }
+         function handleSaveTaskModal() { /* ... same as before ... */
+             const taskId = taskModalIdInput.value; const categoryId = taskModalCategoryIdInput.value;
+             const title = taskModalTitleInput.value.trim(); const dueDate = taskModalDueDateInput.value || null;
+             if (!title) { alert("Enter task title."); return; }
+             let success = false;
+             if (taskId) { success = updateTask(taskId, { title, dueDate }); }
+             else { if (!categoryId || !categories[categoryId]) { alert("Category context missing."); return; }
+                 const newTaskId = addTask(title, categoryId, dueDate); success = !!newTaskId; }
+             if(success) { closeTaskModal(); renderGraph(); handleNodeDeselect(); }
+             else { alert(taskId ? "Error updating task." : "Error adding task."); }
+         }
+         function handleSaveCategoryModal() { /* ... same as before ... */
+            const categoryId = categoryModalIdInput.value; const name = categoryModalNameInput.value.trim();
+            if (!name) { alert("Enter category name."); return; }
+            let result = categoryId ? updateCategory(categoryId, name) : addCategory(name);
+            if (result === true || (typeof result === 'string' && result.startsWith(CATEGORY_NODE_PREFIX))) {
+                closeCategoryModal(); renderGraph(); handleNodeDeselect();
+             } else if (typeof result === 'string') { alert(result); }
+             else { alert("Error saving category."); }
+         }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            setActiveNav('graph.html'); // Correct filename
+            renderGraph(); // Initial render
+
+            // Event Listeners (remain the same)
+            editNodeBtn.addEventListener('click', handleEditSelectedNode);
+            deleteNodeBtn.addEventListener('click', handleDeleteSelectedNode);
+            saveTaskModalBtn.addEventListener('click', handleSaveTaskModal);
+            cancelTaskModalBtn.addEventListener('click', closeTaskModal);
+            taskModalTitleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSaveTaskModal(); });
+            saveCategoryModalBtn.addEventListener('click', handleSaveCategoryModal);
+            cancelCategoryModalBtn.addEventListener('click', closeCategoryModal);
+            categoryModalNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSaveCategoryModal(); });
+
+            // Listeners for theme/data changes
+            window.addEventListener('themeChanged', renderGraph); // Re-render on theme change
+            window.addEventListener('dataUpdated', renderGraph); // Re-render on data change
+        });
+    </script>
+</body>
+</html>

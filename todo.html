@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List - Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <nav class="navbar">
+            <span class="navbar-brand">Task Manager</span>
+            <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="todo.html">To-Do List</a>
+                <a href="graph.html">Graph View</a>
+                <a href="calendar.html">Calendar</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
+                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
+            </button>
+        </nav>
+
+        <div class="content-card">
+             <h1>To-Do List</h1>
+
+             <div class="add-task-form-container"> <h2 id="form-title">Add New Task</h2>
+                <input type="hidden" id="edit-task-id">
+                <div class="add-task-grid"> <div class="form-group">
+                        <label for="task-title-input">Task Title</label>
+                        <input type="text" id="task-title-input" placeholder="Enter task title" class="form-input">
+                     </div>
+                     <div class="form-group">
+                        <label for="task-category-select">Category</label>
+                        <select id="task-category-select" class="form-select"> </select>
+                     </div>
+                     <div class="form-group">
+                         <label for="task-due-date-input">Due Date (Optional)</label>
+                        <input type="date" id="task-due-date-input" title="Due Date" class="form-date"> </div>
+                </div>
+                 <div class="form-actions"> <button id="save-task-btn" class="form-button form-button-primary">Add Task</button>
+                     <button id="cancel-edit-btn" class="form-button form-button-secondary hidden">Cancel Edit</button>
+                 </div>
+
+                 <div class="add-category-section">
+                     <label for="new-category-name" class="visually-hidden">New Category Name</label> <input type="text" id="new-category-name" placeholder="Add new category name" class="form-input">
+                     <button id="add-category-btn" class="form-button form-button-success">Add Category</button>
+                </div>
+            </div>
+
+            <div>
+                <h2>Tasks</h2>
+                <div id="task-list">
+                    <p>Loading tasks...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="dependency-modal" class="modal hidden"> <div class="modal-content"> <h3>Manage Dependencies for <strong id="dep-modal-task-title"></strong></h3>
+
+                <div class="form-group">
+                     <h4>Current Dependencies:</h4>
+                     <ul id="current-dependencies-list" class="dependency-list">
+                         <li>None</li>
+                     </ul>
+                 </div>
+
+                 <div class="form-group add-dependency-group">
+                    <h4>Add New Dependency:</h4>
+                    <p><strong id="dep-modal-task-title-dep"></strong> should depend on:</p>
+                    <label for="dependency-select" class="visually-hidden">Select Prerequisite</label>
+                    <select id="dependency-select" class="form-select"></select>
+                    <button id="save-dependency-btn" class="form-button form-button-primary">Add Dependency</button>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="close-dependency-modal-btn" class="form-button form-button-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+        .add-task-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Default single column */
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (min-width: 640px) { /* Two columns on larger screens */
+            .add-task-grid { grid-template-columns: repeat(2, 1fr); }
+            /* Make title span two columns */
+            .add-task-grid .form-group:first-child { grid-column: span 2; }
+        }
+        .form-group { margin-bottom: 0; } /* Remove bottom margin if grid gap handles it */
+        .form-actions { margin-top: 1rem; display: flex; gap: 0.75rem; }
+        .add-category-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+         .add-category-section input { flex-grow: 1; }
+        .visually-hidden { /* For accessible labels */
+             position: absolute; width: 1px; height: 1px; padding: 0;
+             margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0);
+             white-space: nowrap; border-width: 0;
+        }
+         .dependency-list {
+             list-style: disc; padding-left: 1.5em; font-size: 0.9em;
+             max-height: 120px; overflow-y: auto;
+             padding: 0.5em; border: 1px solid var(--border-color); border-radius: 4px;
+         }
+         .dependency-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.2em 0; }
+         .dependency-list button { background:none; border:none; color: var(--danger-color); font-size: 1.2em; cursor: pointer; padding: 0 0.2em; line-height: 1;}
+         .add-dependency-group { border-top: 1px solid var(--border-color); margin-top: 1em; padding-top: 1em;}
+         .add-dependency-group select { margin-bottom: 0.5em; }
+         .add-dependency-group button { width: 100%; margin-top: 0.5em; }
+         .modal-actions { margin-top: 1.5rem; display: flex; justify-content: flex-end; }
+    </style>
+
+    <script src="common.js"></script>
+    <script>
+        // --- DOM Elements (Ensure these IDs match the HTML) ---
+        const taskListDiv = document.getElementById('task-list');
+        const taskTitleInput = document.getElementById('task-title-input');
+        const taskCategorySelect = document.getElementById('task-category-select');
+        const taskDueDateInput = document.getElementById('task-due-date-input');
+        const saveTaskBtn = document.getElementById('save-task-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const formTitle = document.getElementById('form-title');
+        const editTaskIdInput = document.getElementById('edit-task-id');
+        const newCategoryNameInput = document.getElementById('new-category-name');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        // Dependency Modal Elements
+        const dependencyModal = document.getElementById('dependency-modal');
+        const depModalTaskTitle = document.getElementById('dep-modal-task-title');
+        const depModalTaskTitleDep = document.getElementById('dep-modal-task-title-dep');
+        const dependencySelect = document.getElementById('dependency-select');
+        const currentDependenciesList = document.getElementById('current-dependencies-list');
+        const saveDependencyBtn = document.getElementById('save-dependency-btn');
+        const closeDependencyModalBtn = document.getElementById('close-dependency-modal-btn');
+
+        let currentTaskForDependencyModal = null;
+
+        // --- UI Rendering ---
+        function renderCategoriesSelect() {
+            const currentVal = taskCategorySelect.value;
+            taskCategorySelect.innerHTML = '';
+            if (Object.keys(categories).length === 0) {
+                 taskCategorySelect.innerHTML = '<option value="" disabled selected>Add a category first</option>';
+                 return;
+            }
+            const sortedCategories = Object.entries(categories).sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB));
+            sortedCategories.forEach(([id, name]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                taskCategorySelect.appendChild(option);
+            });
+             if (sortedCategories.map(([id]) => id).includes(currentVal)) {
+                taskCategorySelect.value = currentVal;
+             }
+        }
+
+        function renderTaskList() {
+            taskListDiv.innerHTML = '';
+            if (Object.keys(tasks).length === 0) {
+                taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
+                return;
+            }
+
+            const tasksByCategory = {};
+            Object.entries(tasks).forEach(([id, task]) => {
+                const catId = task.categoryId && categories[task.categoryId] ? task.categoryId : Object.keys(categories)[0];
+                if (!catId) return;
+                 if (task.categoryId !== catId) task.categoryId = catId;
+                if (!tasksByCategory[catId]) tasksByCategory[catId] = [];
+                tasksByCategory[catId].push({ id, ...task });
+            });
+
+            const sortedCategoryIds = Object.keys(tasksByCategory).sort((a, b) => (categories[a] || '').localeCompare(categories[b] || ''));
+
+            sortedCategoryIds.forEach(catId => {
+                const categoryName = categories[catId] || `Unknown Category`;
+                const categoryTasks = tasksByCategory[catId];
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.textContent = categoryName;
+                taskListDiv.appendChild(categoryHeader);
+
+                categoryTasks.sort((a, b) => { // Sort logic remains the same
+                    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                    const dateA = a.dueDate ? new Date(a.dueDate + 'T00:00:00') : null;
+                    const dateB = b.dueDate ? new Date(b.dueDate + 'T00:00:00') : null;
+                    if (dateA && dateB) return dateA - dateB;
+                    if (dateA && !dateB) return -1;
+                    if (!dateA && dateB) return 1;
+                    return a.title.localeCompare(b.title);
+                });
+
+                categoryTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-item ${task.completed ? 'task-item-completed' : ''}`; // Use CSS classes
+                    taskElement.dataset.taskId = task.id;
+
+                    // Checkbox
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = task.completed;
+                    const unmetDependencies = task.dependencies.filter(depId => tasks[depId] && !tasks[depId].completed);
+                     if (!task.completed && unmetDependencies.length > 0) {
+                         checkbox.disabled = true;
+                         checkbox.title = `Cannot complete: Prerequisites unmet (${unmetDependencies.map(id=>tasks[id]?.title || '?').join(', ')})`;
+                     } else {
+                         checkbox.addEventListener('change', () => handleToggleComplete(task.id, checkbox));
+                     }
+
+                    // Content Div
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'task-item-content';
+                    const titleP = document.createElement('p');
+                    titleP.textContent = task.title;
+                    titleP.className = 'task-title';
+                    contentDiv.appendChild(titleP);
+                    if (task.dueDate || task.dependencies.length > 0) {
+                        const metaP = document.createElement('p');
+                        metaP.className = 'task-meta';
+                        let metaText = [];
+                        if (task.dueDate) metaText.push(`Due: ${formatDate(task.dueDate)}`);
+                        if (task.dependencies.length > 0) {
+                            const depNames = task.dependencies.map(depId => tasks[depId]?.title || '?').join(', ');
+                             metaText.push(`Depends on: ${depNames}`);
+                             metaP.title = depNames; // Add tooltip for long lists
+                         }
+                        metaP.textContent = metaText.join(' | ');
+                        contentDiv.appendChild(metaP);
+                    }
+
+                    // Actions Div
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'task-actions';
+                    const editBtn = document.createElement('button');
+                    editBtn.innerHTML = '&#9998;';
+                    editBtn.title = 'Edit Task';
+                    editBtn.className = 'edit-btn';
+                    editBtn.onclick = () => startEditTask(task.id);
+                    const depBtn = document.createElement('button');
+                    depBtn.textContent = 'Deps';
+                    depBtn.title = 'Manage Dependencies';
+                    depBtn.className = 'deps-btn';
+                    depBtn.onclick = () => openDependencyModal(task.id);
+                    if(task.completed) depBtn.disabled = true; // Disable deps button if completed
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.title = 'Delete Task';
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.onclick = () => handleDeleteTask(task.id);
+                    actionsDiv.appendChild(editBtn);
+                    actionsDiv.appendChild(depBtn);
+                    actionsDiv.appendChild(deleteBtn);
+
+                    taskElement.appendChild(checkbox);
+                    taskElement.appendChild(contentDiv);
+                    taskElement.appendChild(actionsDiv);
+                    taskListDiv.appendChild(taskElement);
+                });
+            });
+        }
+
+        // --- Form Handling (logic remains the same) ---
+        function resetForm() {
+            formTitle.textContent = "Add New Task";
+            saveTaskBtn.textContent = "Add Task";
+            editTaskIdInput.value = "";
+            taskTitleInput.value = "";
+            taskDueDateInput.value = "";
+            if (Object.keys(categories).length > 0) {
+                 const firstSortedCategoryId = Object.entries(categories).sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB))[0]?.[0];
+                 if (firstSortedCategoryId) taskCategorySelect.value = firstSortedCategoryId;
+            } else { renderCategoriesSelect(); }
+            cancelEditBtn.classList.add('hidden');
+            taskTitleInput.focus();
+        }
+        function startEditTask(taskId) {
+             const task = tasks[taskId]; if (!task) return;
+             formTitle.textContent = "Edit Task"; saveTaskBtn.textContent = "Save Changes";
+             editTaskIdInput.value = taskId; taskTitleInput.value = task.title;
+             taskCategorySelect.value = task.categoryId; taskDueDateInput.value = getISODate(task.dueDate);
+             cancelEditBtn.classList.remove('hidden');
+             window.scrollTo({ top: 0, behavior: 'smooth' }); taskTitleInput.focus();
+        }
+        function handleSaveTask() {
+            const taskId = editTaskIdInput.value; const title = taskTitleInput.value.trim();
+            const categoryId = taskCategorySelect.value; const dueDate = taskDueDateInput.value || null;
+             if (!title) { alert("Please enter a task title."); taskTitleInput.focus(); return; }
+             if (!categoryId) { alert("Please select or add a category."); return; }
+            let success = false;
+            if (taskId) { success = updateTask(taskId, { title, categoryId, dueDate }); }
+            else { const newTaskId = addTask(title, categoryId, dueDate); success = !!newTaskId; }
+            if(success) { resetForm(); renderTaskList(); }
+            else { alert(taskId ? "Error updating task." : "Error adding task."); }
+        }
+        function handleAddCategoryClick() {
+             const name = newCategoryNameInput.value.trim(); if (!name) { alert("Please enter a category name."); return; }
+             const result = addCategory(name);
+             if (typeof result === 'string' && result.includes('already exists')) { alert(result); }
+             else if (typeof result === 'string' && result.startsWith(CATEGORY_NODE_PREFIX)) {
+                 newCategoryNameInput.value = ''; renderCategoriesSelect(); taskCategorySelect.value = result; renderTaskList();
+             } else { alert("Error adding category."); }
+        }
+        function handleToggleComplete(taskId, checkboxElement) {
+            const result = toggleTaskComplete(taskId);
+            if (result === true) { renderTaskList(); }
+            else if (typeof result === 'string') { alert(result); checkboxElement.checked = false; }
+            else { alert("Error updating task completion status."); checkboxElement.checked = tasks[taskId]?.completed ?? false; }
+        }
+        function handleDeleteTask(taskId) {
+             const task = tasks[taskId]; if (!task) return;
+             if (confirm(`Are you sure you want to delete task "${task.title}"?`)) {
+                 if (deleteTask(taskId)) { renderTaskList(); if (editTaskIdInput.value === taskId) resetForm(); }
+                 else { alert("Error deleting task."); }
+             }
+        }
+
+         // --- Dependency Modal Logic (logic remains the same) ---
+         function openDependencyModal(taskId) {
+             currentTaskForDependencyModal = taskId; const task = tasks[taskId]; if (!task) return;
+             depModalTaskTitle.textContent = task.title; depModalTaskTitleDep.textContent = task.title;
+             currentDependenciesList.innerHTML = ''; // Clear
+             if (task.dependencies.length > 0) {
+                 task.dependencies.forEach(depId => {
+                     const depTask = tasks[depId]; const li = document.createElement('li');
+                     const span = document.createElement('span');
+                     span.textContent = depTask ? depTask.title : `Unknown (ID: ${depId})`;
+                     if (!depTask) span.style.color = 'red'; li.appendChild(span);
+                     const removeBtn = document.createElement('button'); removeBtn.innerHTML = '&times;';
+                     removeBtn.title = 'Remove Dependency'; removeBtn.onclick = () => handleRemoveDependency(taskId, depId);
+                     li.appendChild(removeBtn); currentDependenciesList.appendChild(li);
+                 });
+             } else { currentDependenciesList.innerHTML = '<li>None</li>'; }
+             dependencySelect.innerHTML = '<option value="" disabled selected>Select prerequisite...</option>';
+             const potentialPrerequisites = Object.entries(tasks)
+                 .filter(([id, p]) => id !== taskId && !p.completed && !p.dependencies.includes(taskId))
+                 .sort(([, a], [, b]) => a.title.localeCompare(b.title));
+             potentialPrerequisites.forEach(([id, p]) => {
+                 const option = document.createElement('option'); option.value = id;
+                 option.textContent = `${p.title} (${categories[p.categoryId] || '?'})`;
+                 if (task.dependencies.includes(id)) { option.disabled = true; option.textContent += ' (Added)'; }
+                 dependencySelect.appendChild(option);
+             });
+             dependencyModal.classList.remove('hidden');
+         }
+         function closeDependencyModal() { dependencyModal.classList.add('hidden'); currentTaskForDependencyModal = null; }
+         function handleSaveDependencyClick() {
+            const prerequisiteTaskId = dependencySelect.value; if (!currentTaskForDependencyModal || !prerequisiteTaskId) return alert("Select prerequisite.");
+            const result = addDependency(currentTaskForDependencyModal, prerequisiteTaskId);
+            if (result === true) { openDependencyModal(currentTaskForDependencyModal); renderTaskList(); dependencySelect.value = ''; }
+            else { alert(`Error: ${result}`); }
+         }
+         function handleRemoveDependency(taskId, prerequisiteTaskId) {
+             if (removeDependency(taskId, prerequisiteTaskId)) { openDependencyModal(taskId); renderTaskList(); }
+             else { alert("Error removing dependency."); }
+         }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            setActiveNav('todo.html'); // Correct filename
+            renderCategoriesSelect();
+            renderTaskList();
+            resetForm();
+
+            // Event Listeners (remain the same)
+            saveTaskBtn.addEventListener('click', handleSaveTask);
+            cancelEditBtn.addEventListener('click', resetForm);
+            addCategoryBtn.addEventListener('click', handleAddCategoryClick);
+            closeDependencyModalBtn.addEventListener('click', closeDependencyModal);
+            saveDependencyBtn.addEventListener('click', handleSaveDependencyClick);
+            newCategoryNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddCategoryClick(); });
+            taskTitleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !editTaskIdInput.value) handleSaveTask(); });
+
+            // Listen for data changes
+            window.addEventListener('dataUpdated', () => {
+                renderCategoriesSelect(); renderTaskList();
+            });
+        });
+    </script>
+</body>
+</html>

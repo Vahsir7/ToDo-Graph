@@ -1,0 +1,654 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --- Global Variables --- */
+:root {
+    --font-family-sans: 'Inter', sans-serif;
+    --primary-color: #3b82f6; /* Blue-500 */
+    --primary-hover-color: #2563eb; /* Blue-600 */
+    --secondary-color: #e5e7eb; /* Gray-200 */
+    --secondary-hover-color: #d1d5db; /* Gray-300 */
+    --danger-color: #ef4444; /* Red-500 */
+    --danger-hover-color: #dc2626; /* Red-600 */
+    --success-color: #10b981; /* Emerald-500 */
+    --success-hover-color: #059669; /* Emerald-600 */
+    --warning-color: #f59e0b; /* Amber-500 */
+
+    /* Light Theme */
+    --bg-color: #f9fafb; /* Gray-50 */
+    --text-color: #1f2937; /* Gray-800 */
+    --text-muted-color: #6b7280; /* Gray-500 */
+    --card-bg-color: #ffffff; /* White */
+    --border-color: #e5e7eb; /* Gray-200 */
+    --input-bg-color: #ffffff;
+    --input-border-color: #d1d5db; /* Gray-300 */
+    --button-secondary-text: #374151; /* Gray-700 */
+    --link-color: var(--primary-color);
+
+    /* Focus Ring */
+    --focus-ring-color: rgba(59, 130, 246, 0.5); /* Blue-500 with alpha */
+}
+
+/* --- Dark Theme Variables --- */
+html.dark {
+    --bg-color: #111827; /* Gray-900 */
+    --text-color: #f9fafb; /* Gray-50 */
+    --text-muted-color: #9ca3af; /* Gray-400 */
+    --card-bg-color: #1f2937; /* Gray-800 */
+    --border-color: #4b5563; /* Gray-600 */
+    --input-bg-color: #374151; /* Gray-700 */
+    --input-border-color: #4b5563; /* Gray-600 */
+    --button-secondary-text: #e5e7eb; /* Gray-200 */
+    --link-color: #60a5fa; /* Blue-400 */
+
+    --secondary-color: #4b5563; /* Gray-600 */
+    --secondary-hover-color: #525f71; /* Gray-500/Custom */
+
+    /* Dark mode focus */
+    --focus-ring-color: rgba(96, 165, 250, 0.6); /* Blue-400 with alpha */
+
+    /* Fix for date input text color in dark mode */
+    color-scheme: dark;
+}
+
+
+/* --- Base Styles --- */
+body {
+    font-family: var(--font-family-sans);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 1.5rem; /* Default padding */
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (min-width: 768px) {
+    body { padding: 2rem; }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4 {
+    margin-top: 0;
+    margin-bottom: 0.75em; /* Consistent bottom margin */
+    line-height: 1.3;
+}
+h1 { font-size: 1.8rem; font-weight: 700; }
+h2 { font-size: 1.4rem; font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+h4 { font-size: 1.0rem; font-weight: 600; }
+
+p {
+    margin-top: 0;
+    margin-bottom: 1em;
+}
+
+ul {
+    padding-left: 1.5em;
+}
+
+
+/* --- Layout --- */
+.main-container {
+    max-width: 1100px; /* Slightly smaller max-width */
+    margin: 0 auto;
+}
+
+.content-card {
+    background-color: var(--card-bg-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+
+/* --- Navbar --- */
+.navbar {
+    background-color: var(--card-bg-color); /* Same as card for integration */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem; /* Space between items when wrapped */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-color); /* Ensure brand uses text color */
+    transition: color 0.3s ease;
+}
+
+.navbar-links a {
+    color: var(--text-muted-color);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-left: 0.25rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar-links a:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.navbar-links a.active {
+    background-color: var(--primary-color);
+    color: white; /* White text on primary color */
+}
+.navbar-links a.active:hover {
+    background-color: var(--primary-hover-color);
+}
+
+/* Dark mode adjustments for active link */
+html.dark .navbar-links a.active {
+    background-color: var(--primary-color);
+    color: white; /* Still use white text */
+}
+html.dark .navbar-links a.active:hover {
+    background-color: var(--primary-hover-color);
+}
+
+
+/* --- Theme Toggle Button --- */
+.theme-toggle-button {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex; /* Align icon inside */
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+.theme-toggle-button:hover {
+    background-color: var(--secondary-hover-color);
+}
+.theme-toggle-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor; /* Use text color for icon */
+    color: var(--text-muted-color); /* Muted color for icon */
+    transition: color 0.3s ease;
+}
+.theme-toggle-button:hover svg {
+     color: var(--text-color);
+}
+
+
+/* --- Forms --- */
+.form-input, .form-select, .form-date {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-color);
+    background-color: var(--input-bg-color);
+    background-clip: padding-box;
+    border: 1px solid var(--input-border-color);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out, background-color 0.3s ease, color 0.3s ease;
+}
+
+.form-input::placeholder {
+    color: var(--text-muted-color);
+    opacity: 0.7;
+}
+
+.form-input:focus, .form-select:focus, .form-date:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075), 0 0 0 0.2rem var(--focus-ring-color);
+}
+
+.form-select {
+    appearance: none; /* Remove default arrow */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem; /* Space for arrow */
+}
+html.dark .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23cccccc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* White arrow for dark */
+}
+
+label { /* Basic label styling */
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+
+/* --- Buttons --- */
+.form-button {
+    display: inline-block;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #ffffff; /* Default text color */
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent; /* Base */
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem; /* Adjusted padding */
+    font-size: 0.9rem;
+    border-radius: 6px;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+.form-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+.form-button:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem var(--focus-ring-color);
+}
+/* Button Variants */
+.form-button-primary {
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.form-button-primary:hover {
+    background-color: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
+}
+.form-button-secondary {
+    color: var(--button-secondary-text);
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.form-button-secondary:hover {
+    background-color: var(--secondary-hover-color);
+    border-color: var(--secondary-hover-color);
+     color: var(--text-color); /* Slightly darken text on hover */
+}
+.form-button-danger {
+    color: #fff;
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+.form-button-danger:hover {
+    background-color: var(--danger-hover-color);
+    border-color: var(--danger-hover-color);
+}
+.form-button-success {
+    color: #fff;
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+.form-button-success:hover {
+    background-color: var(--success-hover-color);
+    border-color: var(--success-hover-color);
+}
+/* Small Button Modifier */
+.form-button-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+
+/* --- Utility --- */
+.hidden {
+    display: none !important; /* Ensure hidden class works */
+}
+.flex-grow { flex-grow: 1; }
+.space-y-3 > * + * { margin-top: 0.75rem; } /* Simple spacing */
+.gap-3 { gap: 0.75rem; }
+.flex { display: flex; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sm\:col-span-2 { /* Basic responsive example */ }
+@media (min-width: 640px) {
+    .sm\:col-span-2 { grid-column: span 2 / span 2; }
+}
+
+
+/* --- To-Do List Specific --- */
+.add-task-form-container {
+    background-color: rgba(0,0,0,0.03); /* Slightly different background */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+html.dark .add-task-form-container {
+    background-color: rgba(255,255,255,0.03);
+}
+
+#task-list h3 { /* Category headers */
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted-color);
+}
+
+.task-item {
+    display: flex;
+    align-items: flex-start; /* Align checkbox/content top */
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    background-color: var(--card-bg-color); /* Match card background */
+}
+html.dark .task-item { background-color: transparent; } /* Use card bg in dark mode */
+
+.task-item input[type="checkbox"] {
+    margin-top: 0.2em; /* Align checkbox better */
+    height: 1.1em;
+    width: 1.1em;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.task-item input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.task-item-content {
+    flex-grow: 1;
+    min-width: 0; /* Prevent overflow */
+}
+.task-item-content p {
+    margin: 0 0 0.25em 0; /* Reduce paragraph spacing */
+    word-wrap: break-word; /* Wrap long task titles */
+}
+.task-item-content .task-title {
+    font-weight: 500;
+}
+.task-item-content .task-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted-color);
+}
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: auto; /* Push actions to the right */
+}
+.task-actions button { /* Basic styling for action buttons */
+    background: none;
+    border: none;
+    padding: 0.2rem 0.3rem;
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1;
+}
+.task-actions button:hover { background-color: var(--secondary-color); }
+
+.task-actions .edit-btn { color: var(--primary-color); font-size: 1rem; }
+.task-actions .deps-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted-color);
+    border: 1px solid var(--border-color);
+    padding: 0.1rem 0.4rem;
+}
+.task-actions .deps-btn:hover { border-color: var(--text-muted-color); color: var(--text-color); }
+.task-actions .deps-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border-color) !important; color: var(--text-muted-color) !important; background: none !important; }
+.task-actions .delete-btn { color: var(--danger-color); font-size: 1.3rem; font-weight: bold; }
+
+/* Completed Task Styling */
+.task-item-completed {
+    opacity: 0.7;
+    background-color: var(--secondary-color); /* Slightly different bg */
+}
+html.dark .task-item-completed { background-color: rgba(255,255,255,0.05); }
+
+.task-item-completed .task-title,
+.task-item-completed .task-meta {
+    text-decoration: line-through;
+    color: var(--text-muted-color);
+}
+.task-item-completed .task-actions .deps-btn { /* Disable dep button styling */
+     opacity: 0.5; cursor: not-allowed;
+     border-color: var(--border-color) !important;
+     color: var(--text-muted-color) !important;
+     background: none !important;
+ }
+
+
+/* --- Modals --- */
+.modal {
+    position: fixed;
+    inset: 0; /* Cover entire screen */
+    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000; /* Ensure modal is on top */
+    opacity: 0; /* Start hidden */
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal:not(.hidden) { /* Show when .hidden is removed */
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--card-bg-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 500px; /* Default max width */
+    border: 1px solid var(--border-color);
+    transform: scale(0.95); /* Start slightly smaller */
+    transition: transform 0.3s ease;
+}
+.modal:not(.hidden) .modal-content {
+    transform: scale(1); /* Scale up when shown */
+}
+
+
+/* --- Dashboard Specific --- */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+    gap: 1rem;
+}
+.summary-card {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid var(--border-color);
+}
+.summary-card h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted-color);
+}
+.summary-card .count {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.summary-card .pending-count { color: var(--primary-color); }
+.summary-card .due-today-count { color: var(--warning-color); }
+.summary-card .category-count { color: var(--success-color); }
+
+.summary-card ul {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    padding-left: 1.2em; /* Indent list */
+    list-style: disc;
+    color: var(--text-muted-color);
+}
+.summary-card ul li { margin-bottom: 0.2em; }
+
+
+/* --- Graph / Calendar Specific --- */
+#task-graph, #calendar {
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg-color); /* Use input background */
+    border-radius: 8px;
+    margin-top: 1rem;
+    min-height: 400px; /* Ensure minimum height */
+    position: relative; /* Needed for absolutely positioned elements like tooltips */
+}
+#calendar {
+    padding: 0.5rem;
+    min-height: 550px; /* Calendar often needs more height */
+    height: 70vh; /* Make it responsive to viewport height */
+}
+
+/* Selected Node Info (Graph Page) */
+#selected-node-info {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+#selected-node-info span { font-weight: 500; }
+#selected-node-info button { margin-left: 0.5rem; }
+
+
+/* --- Library Overrides --- */
+
+/* Vis Network Tooltip Styling */
+div.vis-tooltip {
+  position: absolute;
+  visibility: hidden;
+  padding: 8px 10px;
+  white-space: pre-wrap; /* Allow wrapping */
+  max-width: 300px; /* Limit width */
+  font-family: var(--font-family-sans);
+  font-size: 0.85rem;
+  color: #ffffff; /* White text */
+  background-color: #333333; /* Dark background */
+  border: 1px solid #555555;
+  border-radius: 4px;
+  z-index: 1010;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+div.vis-tooltip.visible {
+  visibility: visible;
+  opacity: 0.95; /* Slightly more opaque */
+}
+
+/* FullCalendar Styling (Basic - adjust as needed) */
+#calendar .fc { /* Target FullCalendar instance */
+    font-size: 0.9em; /* Slightly smaller base font */
+}
+#calendar .fc .fc-button { /* Style FC buttons */
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    text-transform: capitalize;
+    box-shadow: none;
+    padding: 0.4em 0.8em;
+    transition: background-color 0.2s ease;
+}
+#calendar .fc .fc-button:hover {
+    background-color: var(--secondary-hover-color);
+}
+#calendar .fc .fc-button-primary { /* Today button */
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+#calendar .fc .fc-button-primary:hover {
+    background-color: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
+}
+#calendar .fc .fc-button-primary:disabled {
+    background-color: var(--secondary-color);
+    border-color: var(--border-color);
+    color: var(--text-muted-color);
+    opacity: 0.6;
+}
+
+#calendar .fc .fc-toolbar-title {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+#calendar .fc-daygrid-day-number { /* Day numbers */
+    color: var(--text-muted-color);
+    padding: 0.4em;
+}
+#calendar .fc-day-today .fc-daygrid-day-number { /* Today's day number */
+    font-weight: bold;
+    color: var(--primary-color);
+}
+#calendar .fc-day-today { /* Today background */
+     background-color: rgba(59, 130, 246, 0.08); /* Subtle primary highlight */
+}
+html.dark #calendar .fc-day-today {
+    background-color: rgba(96, 165, 250, 0.1); /* Subtle primary highlight dark */
+}
+
+#calendar .fc-event { /* Event styling */
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.1em 0.3em;
+    font-size: 0.85em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+#calendar .fc-event:hover {
+     filter: brightness(110%);
+}
+
+/* Completed event styling for Calendar */
+#calendar .fc-event.completed-event {
+    background-color: var(--secondary-hover-color) !important; /* Use important if needed */
+    border-color: var(--border-color) !important;
+    color: var(--text-muted-color) !important;
+    opacity: 0.7;
+}
+#calendar .fc-event.completed-event .fc-event-title {
+    text-decoration: line-through;
+}
