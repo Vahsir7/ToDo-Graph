@@ -5,23 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graph View - Task Manager</title>
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+
 </head>
 <body>
     <div class="main-container">
-        <nav class="navbar">
-            <span class="navbar-brand">Task Manager</span>
-             <div class="navbar-links">
-                <a href="index.html">Dashboard</a>
-                <a href="todo.html">To-Do List</a>
-                <a href="graph.html">Graph View</a>
-                <a href="calendar.html">Calendar</a>
-            </div>
-            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
-                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
-            </button>
-        </nav>
+        {% include 'navbar.html' %}
+
 
         <div class="content-card">
             <h1>Task Graph</h1>
@@ -30,8 +21,10 @@
             <div id="task-graph"></div>
 
              <div id="selected-node-info" class="hidden"> <span id="selected-node-text"></span>
-                 <div> <button id="edit-node-btn" class="form-button form-button-primary form-button-sm" disabled>Edit</button>
-                     <button id="delete-node-btn" class="form-button form-button-danger form-button-sm" disabled>Delete</button>
+                <button id="edit-node-btn" class="form-button form-button-primary form-button-sm" disabled>Edit</button>
+                <button id="add-subtask-btn" class="form-button form-button-success form-button-sm" disabled>Add Subtask</button>
+                <button id="delete-node-btn" class="form-button form-button-danger form-button-sm" disabled>Delete</button>
+                
                  </div>
              </div>
         </div>
@@ -85,6 +78,8 @@
         const selectedNodeTextSpan = document.getElementById('selected-node-text');
         const editNodeBtn = document.getElementById('edit-node-btn');
         const deleteNodeBtn = document.getElementById('delete-node-btn');
+        const addSubtaskBtn = document.getElementById('add-subtask-btn');
+
         // Task Modal
         const taskModal = document.getElementById('task-modal');
         const taskModalTitle = document.getElementById('task-modal-title');
@@ -193,7 +188,10 @@
                     title: tooltipText.replace(/\n/g, '<br>'), mass: 1
                 });
 
-                if (task.categoryId && categories[task.categoryId]) { graphEdges.add({ from: task.categoryId, to: taskId }); }
+                const hasDependencies = task.dependencies && task.dependencies.length > 0;
+if (!hasDependencies && task.categoryId && categories[task.categoryId]) {
+    graphEdges.add({ from: task.categoryId, to: taskId });
+}
                 task.dependencies.forEach(prerequisiteTaskId => {
                     if (tasks[prerequisiteTaskId]) {
                         graphEdges.add({
@@ -232,7 +230,10 @@
                      else if (node.type === 'task') nodeTypeText = 'Task';
                      selectedNodeTextSpan.textContent = `${nodeTypeText}: ${mainLabel}`;
                      const canInteract = node.id !== ME_NODE_ID;
-                     editNodeBtn.disabled = !canInteract; deleteNodeBtn.disabled = !canInteract;
+                     editNodeBtn.disabled = !canInteract;
+                    deleteNodeBtn.disabled = !canInteract;
+                    addSubtaskBtn.disabled = !(canInteract && node.type === 'task');
+
                      selectedNodeInfoDiv.classList.remove('hidden');
                  } else { handleNodeDeselect(); }
              } else { handleNodeDeselect(); }
@@ -241,6 +242,8 @@
             if (!params || !params.nodes || params.nodes.length === 0) {
                 selectedNodeId = null; selectedNodeInfoDiv.classList.add('hidden');
                 editNodeBtn.disabled = true; deleteNodeBtn.disabled = true;
+                addSubtaskBtn.disabled = true;
+
             }
          }
          function handleDoubleClick(params) { /* ... same as before ... */
@@ -249,21 +252,25 @@
                  const nodeId = params.nodes[0]; const node = graphNodes.get(nodeId);
                  if (node && node.id === ME_NODE_ID) { network.focus(ME_NODE_ID, { scale: 1.2, animation: true }); }
                  else if (node && node.type === 'category') { openTaskModal(null, nodeId); }
-                 else if (node && node.type === 'task') { openTaskModal(nodeId); }
+                 else if (node && node.type === 'task') { openTaskModal(null, node.categoryId, node.id); }
+
              } else if (params.nodes.length === 0 && params.edges.length === 0) { openCategoryModal(); }
          }
-         function openTaskModal(taskId = null, categoryIdForNew = null) { /* ... same as before ... */
+         function openTaskModal(taskId = null, categoryIdForNew = null, parentTaskId = null) 
+         { /* ... same as before ... */
             if (taskId) {
                 const task = tasks[taskId]; if (!task) return;
                 taskModalTitle.textContent = "Edit Task"; taskModalIdInput.value = taskId;
                 taskModalCategoryIdInput.value = task.categoryId; taskModalTitleInput.value = task.title;
                 taskModalDueDateInput.value = getISODate(task.dueDate);
             } else if (categoryIdForNew && categories[categoryIdForNew]) {
+                taskModal.dataset.parentTaskId = parentTaskId || "";
                 taskModalTitle.textContent = `Add Task to "${categories[categoryIdForNew]}"`;
                 taskModalIdInput.value = ""; taskModalCategoryIdInput.value = categoryIdForNew;
                 taskModalTitleInput.value = ""; taskModalDueDateInput.value = "";
             } else { return; }
             taskModal.classList.remove('hidden'); taskModalTitleInput.focus();
+            if (!taskId) taskModal.dataset.parentTaskId = parentTaskId || "";
          }
          function closeTaskModal() { /* ... same as before ... */
              taskModal.classList.add('hidden'); taskModalIdInput.value = ""; taskModalCategoryIdInput.value = "";
@@ -290,6 +297,17 @@
             if (node.type === 'task') openTaskModal(selectedNodeId);
             else if (node.type === 'category') openCategoryModal(selectedNodeId);
          }
+         function handleAddSubtask() {
+    if (!selectedNodeId) return;
+    const node = graphNodes.get(selectedNodeId);
+    if (!node || node.type !== 'task') return;
+
+    const task = tasks[selectedNodeId];
+    if (!task) return;
+
+    openTaskModal(null, task.categoryId, selectedNodeId); // New task under same category + dependency
+}
+
          function handleDeleteSelectedNode() { /* ... same as before ... */
              if (!selectedNodeId || selectedNodeId === ME_NODE_ID) return; const node = graphNodes.get(selectedNodeId); if (!node) return;
              const nodeType = node.type === 'category' ? 'category' : 'task';
@@ -307,17 +325,53 @@
                  else { alert(alertMsg || `Error deleting ${nodeType}.`); }
             }
          }
-         function handleSaveTaskModal() { /* ... same as before ... */
-             const taskId = taskModalIdInput.value; const categoryId = taskModalCategoryIdInput.value;
-             const title = taskModalTitleInput.value.trim(); const dueDate = taskModalDueDateInput.value || null;
-             if (!title) { alert("Enter task title."); return; }
-             let success = false;
-             if (taskId) { success = updateTask(taskId, { title, dueDate }); }
-             else { if (!categoryId || !categories[categoryId]) { alert("Category context missing."); return; }
-                 const newTaskId = addTask(title, categoryId, dueDate); success = !!newTaskId; }
-             if(success) { closeTaskModal(); renderGraph(); handleNodeDeselect(); }
-             else { alert(taskId ? "Error updating task." : "Error adding task."); }
-         }
+          
+          function handleSaveTaskModal() {
+    const taskId = taskModalIdInput.value;
+    const categoryId = taskModalCategoryIdInput.value;
+    const title = taskModalTitleInput.value.trim();
+    const dueDate = taskModalDueDateInput.value || null;
+    const parentTaskId = taskModal.dataset.parentTaskId;
+
+    if (!title) {
+        alert("Enter task title.");
+        return;
+    }
+
+    let success = false;
+
+    if (taskId) {
+        success = updateTask(taskId, { title, dueDate });
+    } else {
+        if (!categoryId || !categories[categoryId]) {
+            alert("Category context missing.");
+            return;
+        }
+
+        const newTaskId = addTask(title, categoryId, dueDate);
+        success = !!newTaskId;
+
+        // ✅ Add dependency if this task is being created from another task
+        if (success && parentTaskId && tasks[parentTaskId]) {
+            const result = addDependency(newTaskId, parentTaskId);
+            if (result !== true) {
+                alert(`Dependency Error: ${result}`);
+            }
+        }
+    }
+
+    // ✅ Reset modal state and UI
+    taskModal.dataset.parentTaskId = "";
+
+    if (success) {
+        closeTaskModal();
+        renderGraph();
+        handleNodeDeselect();
+    } else {
+        alert(taskId ? "Error updating task." : "Error adding task.");
+    }
+}
+
          function handleSaveCategoryModal() { /* ... same as before ... */
             const categoryId = categoryModalIdInput.value; const name = categoryModalNameInput.value.trim();
             if (!name) { alert("Enter category name."); return; }
@@ -331,7 +385,8 @@
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
-            setActiveNav('graph.html'); // Correct filename
+            addSubtaskBtn.addEventListener('click', handleAddSubtask);
+            setActiveNav('{{ url_for("graph") }}');
             renderGraph(); // Initial render
 
             // Event Listeners (remain the same)

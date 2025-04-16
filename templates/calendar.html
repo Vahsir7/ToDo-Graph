@@ -5,23 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar View - Task Manager</title>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+
 </head>
 <body>
     <div class="main-container">
-        <nav class="navbar">
-            <span class="navbar-brand">Task Manager</span>
-             <div class="navbar-links">
-                <a href="index.html">Dashboard</a>
-                <a href="todo.html">To-Do List</a>
-                <a href="graph.html">Graph View</a>
-                <a href="calendar.html">Calendar</a>
-            </div>
-            <button id="theme-toggle" class="theme-toggle-button" title="Toggle Theme">
-                <svg id="theme-icon-light" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-icon-dark" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM5 11a1 1 0 100-2H4a1 1 0 100 2h1zM4.293 4.293A1 1 0 015.707 5.707L5 6.414a1 1 0 11-1.414-1.414l.707-.707z" clip-rule="evenodd"></path></svg>
-            </button>
-        </nav>
+        {% include 'navbar.html' %}
+
 
         <div class="content-card">
              <h1>Calendar</h1>
@@ -108,7 +99,8 @@
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
-            setActiveNav('calendar.html'); // Correct filename
+            setActiveNav('{{ url_for("calendar") }}');
+
             initializeCalendar();
 
             // Listeners for theme/data changes
