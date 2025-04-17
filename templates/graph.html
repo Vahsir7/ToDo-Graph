@@ -171,7 +171,7 @@
                 let tooltipText = `Task: ${escapeHtml(task.title)}\nCategory: ${escapeHtml(categories[task.categoryId] || '?')}`;
                 if (task.dueDate) {
                      const dateColor = colors.isDark ? '#9ca3af' : '#6b7280'; // Muted text color
-                     taskLabel += `\n<span style="font-size:0.8em; color:${dateColor};">(${formatDate(task.dueDate)})</span>`;
+                     taskLabel +=  `\n(${formatDate(task.dueDate)})`;
                      tooltipText += `\nDue: ${formatDate(task.dueDate)}`;
                 }
                 const nodeColorToUse = task.completed ? colors.completedTaskColor : colors.taskColor;
@@ -184,7 +184,7 @@
 
                 graphNodes.add({
                     id: taskId, label: taskLabel, shape: 'ellipse', color: nodeColorToUse,
-                    font: { color: fontColor }, type: 'task',
+                    font: { color: '#1f2937' }, type: 'task',
                     title: tooltipText.replace(/\n/g, '<br>'), mass: 1
                 });
 
