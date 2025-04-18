@@ -70,7 +70,7 @@
         .modal-actions { margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; }
     </style>
 
-    <script src="common.js"></script>
+        
     <script>
         // --- DOM Elements ---
         const graphContainer = document.getElementById('task-graph');
@@ -83,7 +83,7 @@
         // Task Modal
         const taskModal = document.getElementById('task-modal');
         const taskModalTitle = document.getElementById('task-modal-title');
-        const taskModalIdInput = document.getElementById('task-modal-id');
+        const taskModalIdInput = document.getElementById('task-modal-id');  
         const taskModalCategoryIdInput = document.getElementById('task-modal-category-id');
         const taskModalTitleInput = document.getElementById('task-modal-title-input');
         const taskModalDueDateInput = document.getElementById('task-modal-due-date-input');
@@ -158,13 +158,13 @@
 
             // Me Node
             graphNodes.add({ id: ME_NODE_ID, label: '<b>Me</b>', shape: 'ellipse', color: colors.meColor, font: { size: 16 }, x: 0, y: 0, mass: 3, type: 'me' });
-
+            console.log("Attempting to process task:", categories);
             // Category Nodes
             Object.entries(categories).forEach(([id, name]) => {
                 graphNodes.add({ id: id, label: `<b>${escapeHtml(name)}</b>`, shape: 'box', color: colors.categoryColor, type: 'category', margin: 10, title: `Category: ${escapeHtml(name)}` });
                 graphEdges.add({ from: ME_NODE_ID, to: id });
             });
-
+            
             // Task Nodes
             Object.entries(tasks).forEach(([taskId, task]) => {
                 let taskLabel = escapeHtml(task.title);
@@ -326,7 +326,7 @@ if (!hasDependencies && task.categoryId && categories[task.categoryId]) {
             }
          }
           
-          function handleSaveTaskModal() {
+         async function handleSaveTaskModal() {
     const taskId = taskModalIdInput.value;
     const categoryId = taskModalCategoryIdInput.value;
     const title = taskModalTitleInput.value.trim();
@@ -341,17 +341,16 @@ if (!hasDependencies && task.categoryId && categories[task.categoryId]) {
     let success = false;
 
     if (taskId) {
-        success = updateTask(taskId, { title, dueDate });
+        success = await updateTask(taskId, { title, dueDate });
     } else {
         if (!categoryId || !categories[categoryId]) {
             alert("Category context missing.");
             return;
         }
 
-        const newTaskId = addTask(title, categoryId, dueDate);
+        const newTaskId = await addTask(title, categoryId, dueDate);
         success = !!newTaskId;
 
-        // ✅ Add dependency if this task is being created from another task
         if (success && parentTaskId && tasks[parentTaskId]) {
             const result = addDependency(newTaskId, parentTaskId);
             if (result !== true) {
@@ -360,17 +359,19 @@ if (!hasDependencies && task.categoryId && categories[task.categoryId]) {
         }
     }
 
-    // ✅ Reset modal state and UI
     taskModal.dataset.parentTaskId = "";
 
     if (success) {
         closeTaskModal();
-        renderGraph();
+        await loadData();    
+  // 🔄 Pull fresh task data (especially if backend auto-assigns fields)
+        renderGraph();         // 🧠 Re-render with updated nodes
         handleNodeDeselect();
     } else {
         alert(taskId ? "Error updating task." : "Error adding task.");
     }
 }
+
 
          function handleSaveCategoryModal() { /* ... same as before ... */
             const categoryId = categoryModalIdInput.value; const name = categoryModalNameInput.value.trim();
