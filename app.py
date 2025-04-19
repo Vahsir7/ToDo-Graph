@@ -122,8 +122,7 @@ def modify_task(task_id):
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
-        return jsonify({"message": "Task deleted"})
-
+        return jsonify({"message": "Task deleted."})
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=10000)
